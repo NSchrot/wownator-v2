@@ -1,0 +1,213 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+// Autenticação
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          Role      @default(USER)
+  faction       Faction?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  accounts      Account[]
+  sessions      Session[]
+  guesses       Guess[]
+  notifications Notification[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// Jogo
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum Faction {
+  HORDE
+  ALLIANCE
+}
+
+enum CategoryType {
+  CHARACTER
+  ZONE
+  MOUNT
+  ABILITY
+  QUOTE
+}
+
+model Character {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  faction   Faction?
+  race      String?
+  class     String?
+  expansion String?
+  zone      String?
+  role      String?
+  imageUrl  String?
+  createdAt DateTime  @default(now())
+
+  dailyChallenges DailyChallenge[]
+  guesses         Guess[]
+}
+
+model Zone {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  continent String?
+  expansion String?
+  level     String?
+  faction   Faction?
+  type      String?
+  imageUrl  String?
+  createdAt DateTime @default(now())
+
+  dailyChallenges DailyChallenge[]
+  guesses         Guess[]
+}
+
+model Mount {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  source    String?
+  type      String?
+  expansion String?
+  faction   Faction?
+  imageUrl  String?
+  createdAt DateTime @default(now())
+
+  dailyChallenges DailyChallenge[]
+  guesses         Guess[]
+}
+
+model Ability {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  class     String?
+  spec      String?
+  type      String?
+  expansion String?
+  imageUrl  String?
+  createdAt DateTime @default(now())
+
+  dailyChallenges DailyChallenge[]
+  guesses         Guess[]
+}
+
+model Quote {
+  id        Int      @id @default(autoincrement())
+  text      String   @db.Text
+  speaker   String
+  context   String?
+  expansion String?
+  createdAt DateTime @default(now())
+
+  dailyChallenges DailyChallenge[]
+  guesses         Guess[]
+}
+
+model DailyChallenge {
+  id        Int          @id @default(autoincrement())
+  date      DateTime     @unique @db.Date
+  category  CategoryType
+
+  characterId Int?
+  zoneId      Int?
+  mountId     Int?
+  abilityId   Int?
+  quoteId     Int?
+
+  character Character? @relation(fields: [characterId], references: [id])
+  zone      Zone?      @relation(fields: [zoneId], references: [id])
+  mount     Mount?     @relation(fields: [mountId], references: [id])
+  ability   Ability?   @relation(fields: [abilityId], references: [id])
+  quote     Quote?     @relation(fields: [quoteId], references: [id])
+
+  guesses Guess[]
+
+  createdAt DateTime @default(now())
+}
+
+model Guess {
+  id          Int      @id @default(autoincrement())
+  userId      String
+  challengeId Int
+  correct     Boolean  @default(false)
+  attempt     Int
+  createdAt   DateTime @default(now())
+
+  characterId Int?
+  zoneId      Int?
+  mountId     Int?
+  abilityId   Int?
+  quoteId     Int?
+
+  user      User           @relation(fields: [userId], references: [id])
+  challenge DailyChallenge @relation(fields: [challengeId], references: [id])
+  character Character?     @relation(fields: [characterId], references: [id])
+  zone      Zone?          @relation(fields: [zoneId], references: [id])
+  mount     Mount?         @relation(fields: [mountId], references: [id])
+  ability   Ability?       @relation(fields: [abilityId], references: [id])
+  quote     Quote?         @relation(fields: [quoteId], references: [id])
+
+  @@unique([userId, challengeId, attempt])
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  title     String
+  message   String   @db.Text
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+}
