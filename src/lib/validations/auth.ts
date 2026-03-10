@@ -1,19 +1,19 @@
 import { z } from "zod";
 
 export const loginSchema = z.object({
-  email: z.string().email("Email inválido"),
-  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
+    email: z.string().email("Email inválido"),
+    password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
 });
 
 export const registerSchema = z.object({
-  name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(50),
-  email: z.string().email("Email inválido"),
-  password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
-  confirmPassword: z.string(),
-  faction: z.enum(["HORDE", "ALLIANCE"]).optional(),
+    name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(50),
+    email: z.string().email("Email inválido"),
+    password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
+    confirmPassword: z.string(),
+    faction: z.enum(["HORDE", "ALLIANCE"]).optional(),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: "As senhas não coincidem",
-  path: ["confirmPassword"],
+    message: "As senhas não coincidem",
+    path: ["confirmPassword"],
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;
