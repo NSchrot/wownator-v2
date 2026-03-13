@@ -392,3 +392,24 @@
 .cta-text-in-horde {
   animation: cta-text-in-horde 320ms ease-out both;
 }
+
+/* Gameplay — cell reveal animation */
+@keyframes cell-reveal {
+  0% {
+    opacity: 0;
+    transform: rotateX(90deg) scale(0.8);
+  }
+  50% {
+    opacity: 0.6;
+    transform: rotateX(-10deg) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: rotateX(0deg) scale(1);
+  }
+}
+
+.cell-reveal {
+  animation: cell-reveal 450ms ease-out both;
+  transform-origin: center center;
+}
